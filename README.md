@@ -1,6 +1,3 @@
-我来帮你编写一个适合当前 Rust 项目的 README.md 文件。根据项目内容，这是一个 Lox 语言的 Rust 实现版本。
-
-```markdown:/Users/hejiajian/Projects/Rust/rlox/README.md
 # RLox
 
 RLox 是一个用 Rust 实现的 Lox 语言解释器。
