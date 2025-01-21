@@ -42,11 +42,10 @@ impl Lox {
 
     fn run(&mut self, source: &str) {
         let mut scanner = Scanner::new(source.to_string());
-        let tokens = scanner.scan_tokens();
+        scanner.scan_tokens();
 
-        // 临时打印 tokens 用于调试
-        for token in tokens {
-            println!("{:?}", token.lexeme);
+        for token in scanner.tokens {
+            println!("{:?}", token);
         }
     }
 
