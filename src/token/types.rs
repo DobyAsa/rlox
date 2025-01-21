@@ -19,7 +19,7 @@
 /// 
 /// ## Keywords
 /// Standard language keywords like `If`, `While`, `Class`, etc.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     // single character tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
