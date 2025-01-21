@@ -4,7 +4,6 @@ use std::{fs, io};
 struct Scanner {
     source: String,
     tokens: Vec<Token>,
-
     start: usize,
     current: usize,
     line: usize,
@@ -22,15 +21,13 @@ impl Scanner {
     }
 
     pub fn scan_tokens(&mut self) -> Vec<Token> {
-        let mut tokens: Vec<Token> = vec![];
-
         while !self.at_end() {
             self.start = self.current;
             self.scan_token();
         }
 
-        tokens.push(Token::new(TokenType::Eof, "", self.line));
-        tokens
+        self.tokens.push(Token::new(TokenType::Eof, "", self.line));
+        std::mem::take(&mut self.tokens)
     }
 
     fn scan_token(&mut self) {
@@ -47,24 +44,20 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
             '*' => self.add_token(TokenType::Star),
-            '!' => {
-                if self.next_char('=') {
-                    self.add_token(TokenType::BangEqual)
-                } else {
-                    self.add_token(TokenType::Bang)
-                }
-            },
-            '=' => {
-                if self.next_char('=') {
-                    self.add_token(TokenType::EqualEqual)
-                } else {
-                    self.add_token(TokenType::Equal)
-                }
-            }
-            default => {
-                Lox::error(self.line, "Unrecognized character.");
-            }
+            '/' => self.add_token(TokenType::Slash),
+            '!' => self.match_token('=', TokenType::BangEqual, TokenType::Bang),
+            '=' => self.match_token('=', TokenType::EqualEqual, TokenType::Equal),
+            '>' => self.match_token('=', TokenType::GreaterEqual, TokenType::Greater),
+            '<' => self.match_token('=', TokenType::LessEqual, TokenType::Less),
+            ' ' | '\r' | '\t' => (), // 忽略空白字符
+            '\n' => self.line += 1,
+            _ => Lox::error(self.line, "Unexpected character."),
         }
+    }
+
+    fn match_token(&mut self, expected: char, matched: TokenType, unmatched: TokenType) {
+        let is_match = self.next_char(expected);
+        self.add_token(if is_match { matched } else { unmatched });
     }
 
     fn next_char(&mut self, expected: char) -> bool {
@@ -174,19 +167,20 @@ impl Lox {
         Lox { had_error: false }
     }
 
-    pub fn exec(&self, args: &Args) {}
-    fn run_file(&mut self, path: &str) -> io::Result<()> {
-        let bytes = fs::read(path)?;
-
-        for line in std::str::from_utf8(&bytes).unwrap().lines() {
-            let line = line.trim();
-            self.run(line);
+    pub fn exec(&mut self, args: &Args) -> io::Result<()> {
+        match &args.script {
+            Some(path) => self.run_file(path),
+            None => self.run_prompt(),
         }
+    }
+
+    fn run_file(&mut self, path: &str) -> io::Result<()> {
+        let content = fs::read_to_string(path)?;
+        self.run(&content);
 
         if self.had_error {
-            panic!("File run failed");
+            std::process::exit(65);
         }
-
         Ok(())
     }
 
@@ -203,8 +197,14 @@ impl Lox {
         Ok(())
     }
 
-    fn run(&mut self, input: &str) {
-        println!("Running: {}", input);
+    fn run(&mut self, source: &str) {
+        let mut scanner = Scanner::new(source.to_string());
+        let tokens = scanner.scan_tokens();
+
+        // 临时打印 tokens 用于调试
+        for token in tokens {
+            println!("{:?}", token.lexeme);
+        }
     }
 
     fn error(line: usize, message: &str) {
