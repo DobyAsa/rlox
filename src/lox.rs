@@ -1,6 +1,5 @@
 use std::{fs, io};
-use crate::Args;
-use crate::Scanner;
+use crate::{scanner::Scanner, Args};
 
 pub struct Lox {
     had_error: bool,
