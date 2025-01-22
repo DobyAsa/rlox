@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::{lox::Lox, token::{Token, TokenType}};
 
 /// Lexical scanner for the Lox language

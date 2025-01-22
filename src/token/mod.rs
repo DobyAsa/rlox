@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Token type definitions
 mod types;
 
